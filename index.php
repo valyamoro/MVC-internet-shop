@@ -20,7 +20,10 @@ $url = \trim($_SERVER['REQUEST_URI'], '/');
 $routes = require __DIR__ . '/config/routes.php';
 
 $action = [];
+
+
 foreach ($routes as $pattern => $value) {
+
 	if (\preg_match($pattern, $url)) {
 		$action = $value;
 		break;

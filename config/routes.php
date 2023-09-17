@@ -7,7 +7,7 @@ return [
 	],
 	'#^auth/registry?#' => [
 		'model' => '',
-		'view' => 'auth/registry',
+		'view' => '/auth/registry',
 	],
 
 	'#^auth/login?#' => [
