@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 error_reporting(-1);
+session_set_cookie_params(3600);
 session_start();
 
 $msg = false;
@@ -64,7 +65,10 @@ if (!empty($msg)) {
         'phone' => $currentUser[4],
         'avatar' => $currentUserAvatar[1],
     ];
+    include __DIR__ . '/../../security/monitoring/session.php';
+    logSessionEvent('User login profile: ' . $_SESSION['user']['name']);
 
+    session_regenerate_id();
     header('Location: /auth/profile');
     die;
 
