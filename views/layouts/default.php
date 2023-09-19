@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title><?php echo $metaTitle?></title>
+	<title><?php echo $metaTitle ?></title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 </head>
 <body>
@@ -21,13 +21,14 @@
 						<li class="nav-item">
 							<a class="nav-link active" aria-current="page" href="/">Главная</a>
 						</li>
-						<li class="nav-item"><a class="nav-link" href="/auth/registry">Регистрация</a></li>
-						<li class="nav-item"><a class="nav-link" href="/auth/login">Вход</a></li>
-						<li class="nav-item"><a class="nav-link" href="#">Выход</a></li>
-						<li class="nav-item"><a class="nav-link" href="#">Товары</a></li>
-						<li class="nav-item">
-							<a class="nav-link disabled">Disabled</a>
-						</li>
+						<li class="nav-item"><a class="nav-link" href="/">Товары</a></li>
+                        <?php if(empty($_SESSION)): ?>
+                            <li class="nav-item"><a class="nav-link" href="/auth/registry">Регистрация</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/auth/login">Вход</a></li>
+                        <?php else: ?>
+                            <li class="nav-item"><a class="nav-link" href="/auth/profile">Личный кабинет</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/src/models/logout_model.php">Выход</a></li>
+                        <?php endif ?>
 					</ul>
 					<form class="d-flex" role="search">
 						<input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">

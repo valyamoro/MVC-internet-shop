@@ -1,6 +1,10 @@
 <?php
 
 return [
+    '#^auth/profile?#' => [
+        'model' => '',
+        'view' => '/auth/profile',
+    ],
 	'#^registry?#' => [
 		'model' => 'registry',
 		'view' => '',
@@ -14,6 +18,7 @@ return [
 		'model' => '',
 		'view' => 'auth/login',
 	],
+
 	'#^#' => [
 		'model' => 'index',
 		'view' => 'shop/index',

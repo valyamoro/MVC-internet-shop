@@ -1,0 +1,4 @@
+1|asdf|asdf@gmail.com|$2y$10$94XH4vRXdrF6Rtk64yP7o.xYLcdGT7NgyaO8wv24hU96QKgSWLxjO|79227369
+2|kutlumbek|kutlumbek@gmail.com|$2y$10$CF7XTnIJpS.alD.ycEJxtuPGQJnZ9NCXDq9XW96tGhc3V/NWrJaG.|79009512322
+3|jutlumbek|jutlumbek@gmail.com|$2y$10$EArbhjykg4SL2id0IjWo4.mTPL8SQOEU71O2JuuMPhZDHDkAPcFUy|79093535421
+4|zxcv|zxcv@gmail.com|$2y$10$K/CyAEq12Dl5u1QGrw3Jk.ZvaCK/etqBjPcqMW74cG6Ueh.Lmj3ue|905231232

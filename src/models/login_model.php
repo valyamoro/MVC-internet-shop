@@ -1,8 +1,16 @@
 <?php
+declare(strict_types=1);
+error_reporting(-1);
+session_start();
 
-$msg = [];
+$msg = false;
 
-extract($_POST);
+foreach ($_POST as $key => $value) {
+    $user[$key] = htmlspecialchars(strip_tags(trim($value)));
+}
+
+$email = $user['email'];
+$password = $user['password'];
 
 if (empty($email)) {
     $msg .= 'Заполните поле почты' . PHP_EOL;
@@ -16,22 +24,22 @@ if (empty($password)) {
 
 if (!empty($msg)) {
     $_SESSION['msg'] = $msg;
-    header('Location: ');
+    header('Location: ../../../views/login.php');
     die;
 } else {
-    $pathUsersData = __DIR__ . '\..\..\..\storage\user.txt';
-    $pathUserWay = __DIR__ . '\..\..\..\storage\user_way.txt';
+    $pathUsersData = __DIR__ . '/../../storage\user.txt';
+    $pathUsersWay = __DIR__ . '/../../storage\user_way.txt';
 
     $dataUsers = file($pathUsersData, FILE_IGNORE_NEW_LINES);
 
-    $approvedUsers = array_filter($dataUsers, function($q) use ($email, $password) {
+    $approvedUsers = array_filter($dataUsers, function ($q) use ($email, $password) {
         $user = explode('|', $q);
         return $user[2] === $email && password_verify($password, $user[3]);
     });
 
     if (empty($approvedUsers)) {
-        $_SESSION['msg'] = 'Неверные данные!';
-        header('Location: login.php');
+        $_SESSION['msg'] = 'Почта или пароль введены неверно.';
+        header('Location: /auth/login.php');
         die;
     } else {
         $currentUser = explode('|', reset($approvedUsers));
@@ -57,6 +65,8 @@ if (!empty($msg)) {
         'avatar' => $currentUserAvatar[1],
     ];
 
-    header('Location: ');
+    header('Location: /auth/profile');
     die;
+
 }
+

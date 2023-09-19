@@ -1,18 +1,29 @@
 <?php
+declare(strict_types=1);
+error_reporting(-1);
+session_start();
 
-$msg = [];
+$msg = '';
 
-extract($_POST);
+foreach ($_POST as $key => $value) {
+    $user[$key] = htmlspecialchars(strip_tags(trim($value)));
+}
+
+$email = $user['email'];
+$userName = $user['user_name'];
+$phone = $user['phone_number'];
+$password = $user['password'];
+
 extract($_FILES);
 
-if (empty($user_name)) {
+if (empty($userName)) {
     $msg .= 'Заполните поле имя' . PHP_EOL;
-} elseif (preg_match('#[^а-яa-z]#ui', $user_name)) {
+} elseif (preg_match('#[^а-яa-z]#ui', $userName)) {
     $msg .= 'Имя содержит недопустимые символы' . PHP_EOL;
-} elseif (mb_strlen($user_name) > 15) {
-    $msg .= 'Имя содержит больше 15 символов' . $user_name . PHP_EOL;
-} elseif (mb_strlen($user_name) <= 3) {
-    $msg .= 'Имя содержит менее 4 символов' . $user_name . PHP_EOL;
+} elseif (mb_strlen($userName) > 15) {
+    $msg .= 'Имя содержит больше 15 символов' . $userName . PHP_EOL;
+} elseif (mb_strlen($userName) <= 3) {
+    $msg .= 'Имя содержит менее 4 символов' . $userName . PHP_EOL;
 }
 
 if (empty($email)) {
@@ -37,16 +48,16 @@ if (empty($password)) {
     $msg .= 'Пароль больше 15 символов ' . PHP_EOL;
 }
 
-if (empty($phone_number)) {
+if (empty($phone)) {
     $msg .= 'Заполните поле номер' . PHP_EOL;
 } elseif (!preg_match('/((8|\+7)-?)?\(?\d{3,5}\)?-?\d{1}-?\d{1}-?\d{1}-?\d{1}-?\d{1}((-?\d{1})?-?\d{1})?/',
-    $phone_number)) {
-    $msg .= 'Некоректный номер' . $phone_number . PHP_EOL;
+    $phone)) {
+    $msg .= 'Некоректный номер' . $phone . PHP_EOL;
 }
 
 $maxFileSize = 1 * 1024 * 1024;
 $allowedExtensions = ['jpeg', 'png', 'gif', 'webp', 'jpg'];
-// Получаю расширение пришедшего из $_FILES файла.
+
 $extension = pathinfo($avatar['name'], PATHINFO_EXTENSION);
 
 if (empty($avatar['name'])) {
@@ -59,16 +70,16 @@ if (empty($avatar['name'])) {
 
 if (!empty($msg)) {
     $_SESSION['msg'] = $msg;
-    header('Location: /reg-main.my/views/registry.php');
+    header('Location: /auth/registry');
     die;
 } else {
-    $phone_number = str_replace(['+', '8'], '', $phone_number);
-    if (strlen($phone_number) === 10 && substr($phone_number, 0, 1) !== '7') {
-        $phone_number = '7' . $phone_number;
+    $phone = str_replace(['+', '8'], '', $phone);
+    if (strlen($phone) === 10 && substr($phone, 0, 1) !== '7') {
+        $phone = '7' . $phone;
     }
-    $pathDirectoryStorage = __DIR__ . '\..\..\..\storage_files';
-    $pathDirectoryUpload = __DIR__ . '\..\..\..\uploads';
-    $pathDirectoryUploadAvatar = __DIR__ . '\..\..\..\uploads\avatars\\';
+    $pathDirectoryStorage = __DIR__ . '\..\..\storage';
+    $pathDirectoryUpload = __DIR__ . '\..\..\uploads';
+    $pathDirectoryUploadAvatar = __DIR__ . '\..\..\uploads\avatars\\';
 
     $itemsDirectory = [$pathDirectoryStorage, $pathDirectoryUploadAvatar, $pathDirectoryUpload];
     foreach ($itemsDirectory as $item) {
@@ -77,8 +88,8 @@ if (!empty($msg)) {
         }
     }
 
-    $usersDataFilePath = __DIR__ . '\..\..\..\storage_files\user.txt';
-    $usersAvatarDataFilePath = __DIR__ . '\..\..\..\storage_files\user_way.txt';
+    $usersDataFilePath = __DIR__ . '\..\..\storage\user.txt';
+    $usersAvatarDataFilePath = __DIR__ . '\..\..\storage\user_way.txt';
 
     $itemsFile = [$usersDataFilePath, $usersAvatarDataFilePath];
     foreach ($itemsFile as $item) {
@@ -86,6 +97,7 @@ if (!empty($msg)) {
     }
 
     $filePath = $pathDirectoryUploadAvatar . uniqid() . $avatar['name'];
+
     move_uploaded_file($avatar['tmp_name'], $filePath);
 
     $filePath = '..\\' . strstr($filePath, 'src');
@@ -105,7 +117,7 @@ if (!empty($msg)) {
 
     if ($isUserExists) {
         $_SESSION['msg'] = 'Пользователь с этими данными уже зарегистрирован!';
-        header('Location: ../../views/registry.php');
+        header('Location: /auth/registry');
         die;
     }
 
@@ -113,11 +125,12 @@ if (!empty($msg)) {
 
     if (!flock($handlerDataUser, LOCK_EX)) {
         $_SESSION['msg'] = 'Не удалось зарегистрироваться, повторите попытку позже!';
+        header('Location: /auth/registry');
         die;
     } else {
         $password = password_hash($password, PASSWORD_DEFAULT);
 
-        $userData = "{$userId}|{$user_name}|{$email}|{$password}|{$phone_number}";
+        $userData = "{$userId}|{$userName}|{$email}|{$password}|{$phone}";
         fwrite($handlerDataUser, $userData . PHP_EOL);
 
         flock($handlerDataUser, LOCK_UN);
@@ -127,6 +140,7 @@ if (!empty($msg)) {
 
     if (!flock($handlerAvatar, LOCK_EX)) {
         $_SESSION['msg'] = 'Не удалось зарегистрироваться, повторите попытку позже!';
+        header('Location: /auth/registry');
         die;
     } else {
         $avatar = "{$userId}|{$filePath}";
@@ -139,12 +153,11 @@ if (!empty($msg)) {
     fclose($handlerAvatar);
 
     if (!empty($msg)) {
-        $_SESSION['error'] = $msg;
-        header('Location: ../../../views/register.php');
+        $_SESSION['msg'] = $msg;
+        header('Location: /auth/registry');
         die;
     } else {
-        $_SESSION['msg'] = 'Регистрация успешно завершена!';
-        header('Location: ../../../views/registry.php');
+        header('Location: /');
         die;
     }
 
