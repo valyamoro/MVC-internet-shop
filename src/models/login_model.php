@@ -1,76 +1,140 @@
 <?php
 declare(strict_types=1);
 error_reporting(-1);
-session_set_cookie_params(3600);
 session_start();
 
-$msg = false;
+// Функция подключения к БД
+function connectionDB(): ?\PDO
+{
+    $dbh = null;
 
-foreach ($_POST as $key => $value) {
-    $user[$key] = htmlspecialchars(strip_tags(trim($value)));
+    if (!\is_null($dbh)) {
+        return $dbh;
+    }
+        $dbh = new \PDO(
+            'mysql:host=localhost;dbname=mvc-int-shop;charset=utf8mb4',
+            'root',
+            '', [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4'",
+        ],
+    );
+    return $dbh;
 }
 
-$email = $user['email'];
-$password = $user['password'];
-
-if (empty($email)) {
-    $msg .= 'Заполните поле почты' . PHP_EOL;
-} elseif (!preg_match("/[0-9a-z]+@[a-z]/", $email)) {
-    $msg .= 'Почта содержит недопустимые данные' . PHP_EOL;
+// Инициализация приходящих данных с $_POST
+function initInputData($data): array
+{
+    foreach ($data as $key => $value) {
+        $user[$key] = htmlspecialchars(strip_tags(trim($value)));
+    }
+    return $user;
 }
 
-if (empty($password)) {
-    $msg .= 'Заполните поле пароль' . PHP_EOL;
-}
+// Валидация почты
+function validateEmail($email)
+{
+    $msg = '';
 
-if (!empty($msg)) {
-    $_SESSION['msg'] = $msg;
-    header('Location: ../../../views/login.php');
-    die;
-} else {
-    $pathUsersData = __DIR__ . '/../../storage\user.txt';
-    $pathUsersWay = __DIR__ . '/../../storage\user_way.txt';
-
-    $dataUsers = file($pathUsersData, FILE_IGNORE_NEW_LINES);
-
-    $approvedUsers = array_filter($dataUsers, function ($q) use ($email, $password) {
-        $user = explode('|', $q);
-        return $user[2] === $email && password_verify($password, $user[3]);
-    });
-
-    if (empty($approvedUsers)) {
-        $_SESSION['msg'] = 'Почта или пароль введены неверно.';
-        header('Location: /auth/login.php');
-        die;
-    } else {
-        $currentUser = explode('|', reset($approvedUsers));
+    if (empty($email)) {
+        $msg .= 'Заполните поле почты' . PHP_EOL;
+    } elseif (!preg_match("/[0-9a-z]+@[a-z]/", $email)) {
+        $msg .= 'Почта содержит недопустимые данные' . PHP_EOL;
     }
 
-    $avatarData = file($pathUsersWay, FILE_IGNORE_NEW_LINES);
+    return $msg;
+}
 
-    $currentId = $currentUser[0];
+// Валидация пароля
+function validatePassword($password)
+{
+    $msg = '';
 
-    $approvedAvatarUsers = array_filter($avatarData, function ($q) use ($currentId) {
-        $user = explode('|', $q);
-        return $user[0] === $currentId;
-    });
+    if (empty($password)) {
+        $msg .= 'Заполните поле пароль' . PHP_EOL;
+    } elseif (!preg_match('/^(?![0-9]+$).+/', $password)) {
+        $msg .= 'Пароль не должен содержать только цифры' . PHP_EOL;
+    } elseif (!preg_match('/^[^!№;]+$/u', $password)) {
+        $msg .= 'Пароль содержит недопустимые символы' . PHP_EOL;
+    } elseif (!preg_match('/^(?![A-Za-z]+$).+/', $password)) {
+        $msg .= 'Пароль не должен состоять только из букв' . PHP_EOL;
+    } elseif (!preg_match('/[A-Z]/', $password)) {
+        $msg .= 'Пароль должен содержать минимум одну заглавную букву' . PHP_EOL;
+    } elseif (strlen($password) <= 5) {
+        $msg .= 'Пароль содержит меньше 5 символов ' . PHP_EOL;
+    } elseif (strlen($password) > 15) {
+        $msg .= 'Пароль больше 15 символов ' . PHP_EOL;
+    }
 
-    $currentUserAvatar = explode('|', reset($approvedAvatarUsers));
+    return $msg;
+}
 
-    $_SESSION['msg'] = 'Вы авторизировались!';
+// Функция для получения всех данных пользователя через почту.
+function getUsersData($email)
+{
+    $sql = "SELECT * FROM users WHERE email = :email";
+    $sth = connectionDB()->prepare($sql);
+    $sth->execute(['email' => $email]);
+    return $sth->fetch(\PDO::FETCH_ASSOC);
+}
+
+// Получение пути до аватарки пользователя
+function getAvatar($email)
+{
+    $sql = "SELECT avatar FROM users WHERE email = :email";
+    $sth = connectionDB()->prepare($sql);
+    $sth->bindParam(":email", $email, PDO::PARAM_STR);
+    $sth->execute();
+
+    return $sth->fetch(PDO::FETCH_ASSOC);
+}
+
+// Получение данных пользователя
+function loginUser($email)
+{
+    $sql = "SELECT * FROM users WHERE email = :email";
+    $sth = connectionDB()->prepare($sql);
+    $sth->bindParam(":email", $email, PDO::PARAM_STR);
+    $sth->execute();
+
+    return $sth->fetch(PDO::FETCH_ASSOC);
+}
+
+// Функция для записи данных пользователя в сессию.
+function writeInSession($data)
+{
     $_SESSION['user'] = [
-        'id' => $currentUser[0],
-        'name' => $currentUser[1],
-        'email' => $currentUser[2],
-        'phone' => $currentUser[4],
-        'avatar' => $currentUserAvatar[1],
+        'id' => $data['id'],
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone_number' => $data['phone_number'],
+        'avatar' => $data['avatar']
     ];
-    include __DIR__ . '/../../security/monitoring/session.php';
-    logSessionEvent('User login profile: ' . $_SESSION['user']['name']);
+}
 
-    session_regenerate_id();
-    header('Location: /auth/profile');
-    die;
+if (!empty($_POST)) {
+
+    $userFromForm = initInputData($_POST);
+
+    $msg = validateEmail($userFromForm['email']);
+    $msg .= validatePassword($userFromForm['password']);
+
+    if (!empty($msg)) {
+        $_SESSION['msg'] = $msg;
+        header('Location: /auth/login');
+        die;
+    } else {
+        $user = getUsersData($_POST['email']);
+        if (!password_verify($userFromForm['password'], $user['password'])) {
+            echo 'что-то пошлло не атк';
+            die;
+        }
+        $userData = loginUser($_POST['email']);
+
+        writeInSession($userData);
+        header('Location: /');
+    }
 
 }
 

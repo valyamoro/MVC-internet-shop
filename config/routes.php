@@ -2,7 +2,8 @@
 
 return [
     '#^auth/profile?#' => [
-        'model' => '',
+        'controller' => 'profile',
+        'model' => 'profile',
         'view' => '/auth/profile',
     ],
 	'#^registry?#' => [
@@ -10,16 +11,19 @@ return [
 		'view' => '',
 	],
 	'#^auth/registry?#' => [
-		'model' => '',
+        'controller' => 'registry',
+		'model' => 'registry',
 		'view' => '/auth/registry',
 	],
 
 	'#^auth/login?#' => [
-		'model' => '',
+        'controller' => 'login',
+		'model' => 'login',
 		'view' => 'auth/login',
 	],
 
 	'#^#' => [
+        'controller' => 'index',
 		'model' => 'index',
 		'view' => 'shop/index',
 	],
