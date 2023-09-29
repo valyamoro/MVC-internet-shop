@@ -15,7 +15,7 @@
 <body>
 <form>
     <a href="#"><?= $_SESSION['user']['name'] ?></a>
-    <a href="#"><?= $_SESSION['user']['phone'] ?></a>
+    <a href="#"><?= $_SESSION['user']['phone_number'] ?></a>
     <a href="#"><?= $_SESSION['user']['email'] ?></a>
     <img width="200" height="200" src="<?= $_SESSION['user']['avatar'] ?>" alt="">
 </form>

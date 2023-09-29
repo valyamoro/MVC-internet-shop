@@ -1,5 +1,4 @@
 <?php
-echo $_SESSION['msg'];
 
 if (empty($products)) {
     echo 'Файл с продуктами пуст';
@@ -9,12 +8,11 @@ if (empty($products)) {
         ?>
         <div class="product-item">
             <form method="post" action="product.php?action=add&code=<?php echo $value[1]; ?>">
-                <div class="product-image"><img src="<?php echo $value[6]; ?>"></div>
                 <div class="product-tile-footer">
-                    <div class="product-id"><?php echo "Айди: {$value[0]}" ?></div>
-                    <div class="product-title"><?php echo "Название: {$value[1]}" ?></div>
-                    <div class="product-count"><?php echo "Количество: {$value[2]}" ?></div>
-                    <div class="product-price"><?php echo "Цена: {$value[3]}" ?></div>
+                    <div class="product-id"><?php echo "Айди: {$value['id']}" ?></div>
+                    <div class="product-title"><?php echo "Название: {$value['title']}" ?></div>
+                    <div class="product-count"><?php echo "Количество: {$value['quantity']}" ?></div>
+                    <div class="product-price"><?php echo "Цена: {$value['price']}" ?></div>
                 </div>
             </form>
             <?php echo '-------------------------------' ?>

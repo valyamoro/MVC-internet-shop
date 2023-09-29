@@ -1,43 +1,29 @@
 <?php
 declare(strict_types=1);
-error_reporting(-1);
-session_start();
+\error_reporting(-1);
+\session_start();
 
+// Получаем такущий url
 $url = \trim($_SERVER['REQUEST_URI'], '/');
-if (empty($url)) {
-	$metaTitle = 'DEMO-SHOP';
-	$template = 'shop/index';
-} elseif ($url === 'auth/registry') {
-	$metaTitle = 'REGISTRY';
-	$template = 'auth/registry';
-} elseif ($url === 'auth/login') {
-	$metaTitle = 'LOGIN';
-	$template = 'auth/login';
-} elseif ($url === 'auth/profile') {
-    $metaTitle = 'PROFILE';
-    $template = 'auth/profile';
-}
 
-
+// Иниц. маршрута
 $routes = require __DIR__ . '/config/routes.php';
 
-$action = [];
-
-
+$currentAction = [];
+// Перебираем маршруты и находим нужный через текущий url
 foreach ($routes as $pattern => $value) {
-
-	if (\preg_match($pattern, $url)) {
-		$action = $value;
-		break;
-	}
+    if (\preg_match($pattern, $url)) {
+        // Присваиваем model, controller, view
+        $currentAction = $value;
+        break;
+    }
 }
 
-if (!empty($action['model'])) {
-	require __DIR__ . "/src/models/{$action['model']}_model.php";
-}
+require __DIR__ . '/src/models/base_model.php';
 
-ob_start();
-require __DIR__ . "/views/{$action['view']}.php";
-$content = ob_get_clean();
+//$dbh = connectionDB();
+require __DIR__ . "/src/models/{$currentAction['model']}_model.php";
 
+require __DIR__ . '/src/controllers/base_controller.php';
+require __DIR__ . "/src/controllers/{$currentAction['controller']}_controller.php";
 require __DIR__ . '/views/layouts/default.php';
